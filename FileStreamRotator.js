@@ -288,7 +288,7 @@ FileStreamRotator.addLogToAudit = function(logfile, audit){
         if (audit.files.containsKeyValue(logfile, "name")) {
             audit.files = audit.files.map(function(file) {
                 if (file.name === logfile) {
-                    file.time = time;
+                    file.date = time;
                     file.hash = crypto.createHash('md5').update(logfile + "LOG_FILE" + time).digest("hex");
                 }
                 return file;
