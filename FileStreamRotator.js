@@ -60,6 +60,15 @@ module.exports = FileStreamRotator;
 var staticFrequency = ['daily', 'test', 'm', 'h', 'custom'];
 var DATE_FORMAT = ('YYYYMMDDHHmm');
 
+Array.prototype.containsKeyValue = function(value, key) {
+    var i = this.length
+    while (i--) {
+        if (this[i][key] === value) {
+            return true
+        }
+    }
+    return false
+}
 
 /**
  * Returns frequency metadata for minute/hour rotation
@@ -275,11 +284,22 @@ function removeFile(file){
 FileStreamRotator.addLogToAudit = function(logfile, audit){
     if(audit && audit.files){
         var time = Date.now();
-        audit.files.push({
-            date: time,
-            name: logfile,
-            hash: crypto.createHash('md5').update(logfile + "LOG_FILE" + time).digest("hex")
-        });
+
+        if (audit.files.containsKeyValue(logfile, "name")) {
+            audit.files = audit.files.map(function(file) {
+                if (file.name === logfile) {
+                    file.time = time;
+                    file.hash = crypto.createHash('md5').update(logfile + "LOG_FILE" + time).digest("hex");
+                }
+                return file;
+            });
+        } else {
+            audit.files.push({
+                date: time,
+                name: logfile,
+                hash: crypto.createHash('md5').update(logfile + "LOG_FILE" + time).digest("hex")
+            });
+        }
 
         if(audit.keep.days){
             var oldestDate = moment().subtract(audit.keep.amount,"days").valueOf();
